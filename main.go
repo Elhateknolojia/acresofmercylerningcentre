@@ -1,7 +1,22 @@
 package main
 
-import "fmt"
+import (
+	"acresofmercy/middleware"
+    "acresofmercy/handlers"
+    "github.com/gin-gonic/gin"
+)
 
-func main(){
-	fmt.Println("Hello, World!")
+func main() {
+    r := gin.Default()
+
+	 // Apply CORS middleware
+    r.Use(middleware.CORSMiddleware())
+
+    // Admissions route
+    r.POST("/api/admissions", handlers.SubmitAdmission)
+
+    // Contacts route
+    r.POST("/api/contacts", handlers.SubmitContact)
+
+    r.Run(":8080")
 }
