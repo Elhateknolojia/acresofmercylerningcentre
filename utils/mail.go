@@ -15,11 +15,16 @@ func SendMail(from string, subject string, body string, passEnv string) error {
 
     d := gomail.NewDialer(
         "mail.acresofmercylearningcentre.sc.ke", // SMTP host
-        465,                                    // Port (SSL)
+        587,                                    // Port (STARTTLS)
         from,                                   // Username (full email)
         os.Getenv(passEnv),                     // Password from env
     )
-    d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+    // STARTTLS requires TLS config but not full SSL
+    d.TLSConfig = &tls.Config{
+        InsecureSkipVerify: true,
+        ServerName: "mail.acresofmercylearningcentre.sc.ke",
+    }
 
     return d.DialAndSend(m)
 }
