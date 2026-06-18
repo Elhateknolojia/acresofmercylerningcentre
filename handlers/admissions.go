@@ -4,7 +4,7 @@ import (
     "acresofmercy/models"
     "acresofmercy/utils"
     "net/http"
-
+    "fmt"
     "github.com/gin-gonic/gin"
 )
 
@@ -25,6 +25,7 @@ func SubmitAdmission(c *gin.Context) {
         body,
         "MAIL_PASS_ADMISSIONS",
     ); err != nil {
+        fmt.Println("SendMail error:", err) // log to Render
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
         return
     }
