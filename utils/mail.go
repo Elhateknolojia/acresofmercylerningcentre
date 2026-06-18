@@ -14,7 +14,7 @@ func SendMail(from string, subject string, body string, passEnv string) error {
     m.SetBody("text/plain", body)
 
     d := gomail.NewDialer(
-        "mail.acresofmercylearningcentre.co.ke", // SMTP host
+        "mail.acresofmercylearningcentre.scco.ke", // SMTP host
         465,                                    // Port (SSL)
         from,                                   // Username (full email)
         os.Getenv(passEnv),                     // Password from env
