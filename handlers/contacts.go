@@ -17,21 +17,17 @@ func SubmitContact(c *gin.Context) {
         return
     }
 
-    subject := "New Contact Request - " + req.Subject
-    body := "Name: " + req.Name +
-        "\nEmail: " + req.Email +
-        "\nPhone: " + req.Phone +
-        "\nSubject: " + req.Subject +
-        "\nMessage: " + req.Message +
-        "\nConsent: " + fmt.Sprintf("%t", req.Consent)
+    // subject := "New Contact Request - " + req.Subject
+    // body := "Name: " + req.Name +
+    //     "\nEmail: " + req.Email +
+    //     "\nPhone: " + req.Phone +
+    //     "\nSubject: " + req.Subject +
+    //     "\nMessage: " + req.Message +
+    //     "\nConsent: " + fmt.Sprintf("%t", req.Consent)
 
-    if err := utils.SendMail(
-        "requests@acresofmercylearningcentre.co.ke",
-        subject,
-        body,
-        "MAIL_PASS_REQUESTS",
-    ); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send contact request"})
+    if err := utils.RelayMail("https://acresofmercylearningcentre.sc.ke/send_contact.php", req); err != nil {
+        fmt.Println("SendMail contact request error:", err) // log to Render
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 

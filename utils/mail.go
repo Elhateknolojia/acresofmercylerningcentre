@@ -1,30 +1,22 @@
 package utils
 
 import (
-    "crypto/tls"
-    "gopkg.in/gomail.v2"
-    "os"
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "net/http"
 )
 
-func SendMail(from string, subject string, body string, passEnv string) error {
-    m := gomail.NewMessage()
-    m.SetHeader("From", from)
-    m.SetHeader("To", from)
-    m.SetHeader("Subject", subject)
-    m.SetBody("text/plain", body)
-
-    d := gomail.NewDialer(
-        "mail.acresofmercylearningcentre.sc.ke", // SMTP host
-        587,                                    // Port (STARTTLS)
-        from,                                   // Username (full email)
-        os.Getenv(passEnv),                     // Password from env
-    )
-
-    // STARTTLS requires TLS config but not full SSL
-    d.TLSConfig = &tls.Config{
-        InsecureSkipVerify: true,
-        ServerName: "mail.acresofmercylearningcentre.sc.ke",
+func RelayMail(endpoint string, payload interface{}) error {
+    data, _ := json.Marshal(payload)
+    resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(data))
+    if err != nil {
+        return err
     }
+    defer resp.Body.Close()
 
-    return d.DialAndSend(m)
+    if resp.StatusCode != http.StatusOK {
+        return fmt.Errorf("relay error: %s", resp.Status)
+    }
+    return nil
 }

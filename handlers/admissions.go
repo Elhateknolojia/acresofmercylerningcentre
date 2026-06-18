@@ -16,17 +16,12 @@ func SubmitAdmission(c *gin.Context) {
         return
     }
 
-    subject := "New Admission Request"
-    body := "Name: " + req.ParentName + "\nEmail: " + req.Email + "\nPhone: " + req.Phone + "\nMessage: " + req.Message
+    // subject := "New Admission Request"
+    // body := "Name: " + req.ParentName + "\nEmail: " + req.Email + "\nPhone: " + req.Phone + "\nMessage: " + req.Message
 
-    if err := utils.SendMail(
-        "admissions@acresofmercylearningcentre.co.ke",
-        subject,
-        body,
-        "MAIL_PASS_ADMISSIONS",
-    ); err != nil {
+    if err := utils.RelayMail("https://acresofmercylearningcentre.sc.ke/send_admission.php", req); err != nil {
         fmt.Println("SendMail error:", err) // log to Render
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
