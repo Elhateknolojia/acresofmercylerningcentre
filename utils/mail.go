@@ -1,21 +1,25 @@
 package utils
 
 import (
-    "fmt"
-    "net/smtp"
+    "crypto/tls"
+    "gopkg.in/gomail.v2"
+    "os"
 )
 
-func SendMail(to string, subject string, body string) error {
-    // Configure your SMTP server
-    smtpHost := "smtp.gmail.com"
-    smtpPort := "587"
+func SendMail(from string, subject string, body string, passEnv string) error {
+    m := gomail.NewMessage()
+    m.SetHeader("From", from)
+    m.SetHeader("To", from)
+    m.SetHeader("Subject", subject)
+    m.SetBody("text/plain", body)
 
-    sender := "your-email@gmail.com"       // replace with your Gmail
-    password := "your-app-password"        // use Gmail App Password
+    d := gomail.NewDialer(
+        "mail.acresofmercylearningcentre.co.ke", // SMTP host
+        465,                                    // Port (SSL)
+        from,                                   // Username (full email)
+        os.Getenv(passEnv),                     // Password from env
+    )
+    d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-    auth := smtp.PlainAuth("", sender, password, smtpHost)
-
-    msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\n\r\n%s", to, subject, body))
-
-    return smtp.SendMail(smtpHost+":"+smtpPort, auth, sender, []string{to}, msg)
+    return d.DialAndSend(m)
 }

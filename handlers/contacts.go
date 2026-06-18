@@ -25,10 +25,16 @@ func SubmitContact(c *gin.Context) {
         "\nMessage: " + req.Message +
         "\nConsent: " + fmt.Sprintf("%t", req.Consent)
 
-    if err := utils.SendMail("contact@acresofmercylearningcentre.sc.ke", subject, body); err != nil {
+    if err := utils.SendMail(
+        "requests@acresofmercylearningcentre.co.ke",
+        subject,
+        body,
+        "MAIL_PASS_REQUESTS",
+    ); err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send contact request"})
         return
     }
+
 
     c.JSON(http.StatusOK, gin.H{"message": "Contact request submitted successfully"})
 }
