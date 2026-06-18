@@ -17,7 +17,7 @@ func SubmitAdmission(c *gin.Context) {
     }
 
     subject := "New Admission Request"
-    body := "Name: " + req.Name + "\nEmail: " + req.Email + "\nPhone: " + req.Phone + "\nMessage: " + req.Message
+    body := "Name: " + req.ParentName + "\nEmail: " + req.Email + "\nPhone: " + req.Phone + "\nMessage: " + req.Message
 
     if err := utils.SendMail(
         "admissions@acresofmercylearningcentre.co.ke",
