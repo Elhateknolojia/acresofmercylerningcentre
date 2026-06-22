@@ -12,6 +12,8 @@ import (
 
 func main() {
     db.InitMongo(os.Getenv("MONGO_URI"))
+    db.InitResources()
+
         // Start background dispatcher every 30 minutes
     go func() {
         ticker := time.NewTicker(30 * time.Minute)
@@ -36,6 +38,13 @@ func main() {
 
     // new route
     r.POST("/api/subscribe", handlers.SubscribeHandler)
+
+    // Resources routes
+    r.POST("/api/resources", handlers.UploadResource)   // admin upload
+    r.GET("/api/resources", handlers.ListResources)     // list all
+    r.GET("/api/resources/:id/download", handlers.DownloadResource) // download
+    r.DELETE("/api/resources/:id", handlers.DeleteResource) // delete
+
 
     r.Run(":8080")
 }
