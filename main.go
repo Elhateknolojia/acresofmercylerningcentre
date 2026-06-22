@@ -33,5 +33,9 @@ func main() {
     // Contacts route
     r.POST("/api/contacts", handlers.SubmitContact)
 
+
+    // new route
+    r.POST("/api/subscribe", handlers.SubscribeHandler)
+
     r.Run(":8080")
 }

@@ -3,7 +3,7 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
+	// "encoding/json"
 	"net/http"
 	"time"
 
@@ -14,25 +14,26 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func SubscribeHandler(w http.ResponseWriter, r *http.Request) {
+
+func SubscribeHandler(c *gin.Context) {
     var req struct {
         Email string `json:"email"`
     }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-        http.Error(w, "Invalid request", http.StatusBadRequest)
+    if err := c.ShouldBindJSON(&req); err != nil || req.Email == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
         return
     }
 
     coll := db.Client.Database("AOMLC").Collection("subscribers")
 
-    // prevent duplicates
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
 
+    // prevent duplicates
     var existing models.Subscriber
     err := coll.FindOne(ctx, bson.M{"email": req.Email}).Decode(&existing)
     if err == nil {
-        http.Error(w, "Email already subscribed", http.StatusConflict)
+        c.JSON(http.StatusConflict, gin.H{"error": "Email already subscribed"})
         return
     }
 
@@ -43,15 +44,12 @@ func SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 
     _, err = coll.InsertOne(ctx, sub)
     if err != nil {
-        http.Error(w, "Failed to save", http.StatusInternalServerError)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save"})
         return
     }
 
-    w.WriteHeader(http.StatusCreated)
-    w.Write([]byte("Subscribed successfully"))
+    c.JSON(http.StatusCreated, gin.H{"message": "Subscribed successfully"})
 }
-
-
 // handlers/newsletter.go
 func CreateNewsletter(c *gin.Context) {
     var req struct {
