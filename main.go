@@ -1,12 +1,27 @@
 package main
 
 import (
+	"acresofmercy/handlers"
 	"acresofmercy/middleware"
-    "acresofmercy/handlers"
-    "github.com/gin-gonic/gin"
+	"os"
+    "acresofmercy/db"
+    "acresofmercy/services"
+    "time"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
+    db.InitMongo(os.Getenv("MONGO_URI"))
+        // Start background dispatcher every 30 minutes
+    go func() {
+        ticker := time.NewTicker(30 * time.Minute)
+        defer ticker.Stop()
+        for {
+            <-ticker.C
+            services.DispatchNewsletters()
+        }
+    }()
+
     r := gin.Default()
 
 	 // Apply CORS middleware
