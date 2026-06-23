@@ -5,13 +5,16 @@ import (
     "acresofmercy/models"
     "net/http"
     "os"
-    "path/filepath"
+     "github.com/cloudinary/cloudinary-go/v2"
+    "github.com/cloudinary/cloudinary-go/v2/api/uploader"
+    // "path/filepath"
 	"time"
     "github.com/gin-gonic/gin"
     "github.com/google/uuid"
 )
 
 // UploadResource: admin uploads a file
+
 func UploadResource(c *gin.Context) {
     file, err := c.FormFile("file")
     if err != nil {
@@ -19,29 +22,31 @@ func UploadResource(c *gin.Context) {
         return
     }
 
-    id := uuid.New().String()
-    savePath := filepath.Join("uploads", id+"_"+file.Filename)
-    absPath, _ := filepath.Abs(savePath)
-    if err := c.SaveUploadedFile(file, savePath); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+    // Initialize Cloudinary
+    cld, _ := cloudinary.NewFromURL(os.Getenv("CLOUDINARY_URL"))
+
+    // Upload file
+    f, _ := file.Open()
+    uploadResult, err := cld.Upload.Upload(c, f, uploader.UploadParams{})
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload to Cloudinary"})
         return
     }
 
     resource := models.Resource{
-        ID:       id,
+        ID:       uuid.New().String(),
         Title:    c.PostForm("title"),
         Type:     c.PostForm("type"),
         Audience: c.PostForm("audience"),
         FileName: file.Filename,
-        FilePath: absPath,
+        FilePath: uploadResult.SecureURL, // ✅ Cloudinary URL
         FileSize: file.Size,
         DateAdded: time.Now(),
     }
 
-    db.SaveResource(resource) // persist in Mongo
+    db.SaveResource(resource)
     c.JSON(http.StatusOK, resource)
 }
-
 // ListResources: return all resources
 func ListResources(c *gin.Context) {
     resources := db.GetResources()
