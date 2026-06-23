@@ -13,6 +13,9 @@ import (
 func main() {
     db.InitMongo(os.Getenv("MONGO_URI"))
     db.InitResources()
+    db.InitEvents()
+    db.InitHighlights()
+
 
         // Start background dispatcher every 30 minutes
     go func() {
@@ -46,5 +49,18 @@ func main() {
     r.DELETE("/api/resources/:id", handlers.DeleteResource) // delete
 
 
+
+    // Events routes
+r.GET("/api/events", handlers.ListEvents)
+r.POST("/api/events", handlers.AddEvent)
+r.DELETE("/api/events/:id", handlers.DeleteEvent)
+
+// Highlights routes
+r.GET("/api/highlights", handlers.ListHighlights)
+r.POST("/api/highlights", handlers.SaveHighlights)
+
+
+
+    
     r.Run(":8080")
 }
