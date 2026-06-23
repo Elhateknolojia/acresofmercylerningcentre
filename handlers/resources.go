@@ -21,6 +21,7 @@ func UploadResource(c *gin.Context) {
 
     id := uuid.New().String()
     savePath := filepath.Join("uploads", id+"_"+file.Filename)
+    absPath, _ := filepath.Abs(savePath)
     if err := c.SaveUploadedFile(file, savePath); err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
         return
@@ -32,7 +33,7 @@ func UploadResource(c *gin.Context) {
         Type:     c.PostForm("type"),
         Audience: c.PostForm("audience"),
         FileName: file.Filename,
-        FilePath: savePath,
+        FilePath: absPath,
         FileSize: file.Size,
         DateAdded: time.Now(),
     }
