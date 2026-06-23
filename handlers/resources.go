@@ -50,6 +50,9 @@ func UploadResource(c *gin.Context) {
 // ListResources: return all resources
 func ListResources(c *gin.Context) {
     resources := db.GetResources()
+    if resources == nil {
+        resources = []models.Resource{} // ✅ return empty array, not null
+    }
     c.JSON(http.StatusOK, resources)
 }
 
