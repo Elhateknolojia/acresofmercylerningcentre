@@ -58,6 +58,7 @@ r.DELETE("/api/events/:id", handlers.DeleteEvent)
 // Highlights routes
 r.GET("/api/highlights", handlers.ListHighlights)
 r.POST("/api/highlights", handlers.SaveHighlights)
+r.DELETE("/api/highlights/:id", handlers.DeleteHighlight)
 
 
 

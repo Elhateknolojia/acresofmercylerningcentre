@@ -49,3 +49,16 @@ func SaveHighlights(highlights []models.Highlight) {
         highlightsCollection.InsertOne(context.TODO(), h)
     }
 }
+
+func GetHighlightByID(id string) *models.Highlight {
+    var h models.Highlight
+    err := highlightsCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&h)
+    if err != nil {
+        return nil
+    }
+    return &h
+}
+
+func DeleteHighlight(id string) {
+    highlightsCollection.DeleteOne(context.TODO(), bson.M{"_id": id})
+}
