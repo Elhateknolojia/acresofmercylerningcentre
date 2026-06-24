@@ -22,7 +22,7 @@ func DownloadBrochureHandler(w http.ResponseWriter, r *http.Request) {
 
     // Send HTML to Node.js PDF service
     log.Println("[DownloadBrochureHandler] Sending HTML to Node.js service...")
-    resp, err := http.Post("https://pdf-service-rudh.onrender.com/generate-pdf", "text/html", bytes.NewReader(htmlContent))
+    resp, err := http.Post("https://pdf-service-python.onrender.com/generate-pdf", "text/html", bytes.NewReader(htmlContent))
     if err != nil {
         log.Printf("ERROR calling PDF service: %v", err)
         http.Error(w, "Failed to generate PDF", http.StatusInternalServerError)
