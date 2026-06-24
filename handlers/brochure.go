@@ -1,90 +1,46 @@
 package handlers
 
 import (
-    // "context"
-    // "github.com/chromedp/chromedp"
-    // "github.com/chromedp/cdproto/page"
+    "bytes"
+    "io/ioutil"
     "log"
     "net/http"
     "os"
-    "strconv"
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
-    // "time"
 )
 
-var brochureHTML string
-
-func init() {
-    data, err := os.ReadFile("attachments/brochure.html")
-    if err != nil {
-        log.Printf("Failed to load brochure: %v", err)
-        brochureHTML = "<html><body><h1>Brochure not found</h1></body></html>"
-    } else {
-        brochureHTML = string(data)
-    }
-}
-
-
 func DownloadBrochureHandler(w http.ResponseWriter, r *http.Request) {
-    log.Println("[DownloadBrochureHandler] Request received from:", r.RemoteAddr)
+    log.Println("[DownloadBrochureHandler] Request received")
 
-    // Load HTML file
-    log.Println("[DownloadBrochureHandler] Attempting to open brochure.html...")
-    f, err := os.Open("attachments/brochure.html")
+    // Load brochure HTML
+    htmlContent, err := os.ReadFile("attachments/brochure.html")
     if err != nil {
-        log.Printf("[DownloadBrochureHandler] ERROR opening brochure.html: %v", err)
+        log.Printf("ERROR reading brochure.html: %v", err)
         http.Error(w, "Brochure not found", http.StatusInternalServerError)
         return
     }
-    defer func() {
-        log.Println("[DownloadBrochureHandler] Closing brochure.html file handle")
-        f.Close()
-    }()
 
-    // Create new PDF generator
-    log.Println("[DownloadBrochureHandler] Initializing wkhtmltopdf generator...")
-    pdfg, err := wkhtmltopdf.NewPDFGenerator()
+    // Send HTML to Node.js PDF service
+    log.Println("[DownloadBrochureHandler] Sending HTML to Node.js service...")
+    resp, err := http.Post("https://pdf-service-rudh.onrender.com/generate-pdf", "text/html", bytes.NewReader(htmlContent))
     if err != nil {
-        log.Printf("[DownloadBrochureHandler] ERROR initializing PDF generator: %v", err)
-        http.Error(w, "Failed to init PDF generator", http.StatusInternalServerError)
-        return
-    }
-
-    // Add input HTML file
-    log.Println("[DownloadBrochureHandler] Adding brochure.html as input page...")
-    pdfg.AddPage(wkhtmltopdf.NewPageReader(f))
-
-    // Set options
-    log.Println("[DownloadBrochureHandler] Setting PDF options (DPI=300, A4, Portrait)...")
-    pdfg.Dpi.Set(300)
-    pdfg.Orientation.Set(wkhtmltopdf.OrientationPortrait)
-    pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-
-    // Create PDF
-    log.Println("[DownloadBrochureHandler] Generating PDF...")
-    err = pdfg.Create()
-    if err != nil {
-        log.Printf("[DownloadBrochureHandler] ERROR generating PDF: %v", err)
+        log.Printf("ERROR calling PDF service: %v", err)
         http.Error(w, "Failed to generate PDF", http.StatusInternalServerError)
         return
     }
-    log.Println("[DownloadBrochureHandler] PDF generation successful")
+    defer resp.Body.Close()
 
-    buf := pdfg.Bytes()
-    log.Printf("[DownloadBrochureHandler] PDF size: %d bytes", len(buf))
+    pdfBytes, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        log.Printf("ERROR reading PDF response: %v", err)
+        http.Error(w, "Failed to read PDF", http.StatusInternalServerError)
+        return
+    }
 
-    // Write response headers
-    log.Println("[DownloadBrochureHandler] Writing response headers...")
+    // Forward PDF to client
     w.Header().Set("Content-Type", "application/pdf")
     w.Header().Set("Content-Disposition", `attachment; filename="Acres_of_Mercy_Prospectus.pdf"`)
-    w.Header().Set("Content-Length", strconv.Itoa(len(buf)))
+    w.Header().Set("Content-Length", strconv.Itoa(len(pdfBytes)))
+    w.Write(pdfBytes)
 
-    // Send PDF to client
-    log.Println("[DownloadBrochureHandler] Sending PDF to client...")
-    _, writeErr := w.Write(buf)
-    if writeErr != nil {
-        log.Printf("[DownloadBrochureHandler] ERROR writing PDF to response: %v", writeErr)
-    } else {
-        log.Println("[DownloadBrochureHandler] PDF successfully sent to client")
-    }
+    log.Println("[DownloadBrochureHandler] PDF successfully sent to client")
 }
