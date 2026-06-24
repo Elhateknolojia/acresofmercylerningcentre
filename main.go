@@ -8,9 +8,18 @@ import (
     "acresofmercy/services"
     "time"
 	"github.com/gin-gonic/gin"
+    "fmt"
+    "github.com/joho/godotenv"
 )
 
 func main() {
+
+      err := godotenv.Load(".env")
+    if err != nil {
+        fmt.Println("Warning: .env file not found")
+    }
+    fmt.Println("MONGO_URI:", os.Getenv("MONGO_URI"))
+
     db.InitMongo(os.Getenv("MONGO_URI"))
     db.InitResources()
     db.InitEvents()
@@ -61,7 +70,14 @@ r.POST("/api/highlights", handlers.SaveHighlights)
 r.DELETE("/api/highlights/:id", handlers.DeleteHighlight)
 
 
+//download brochure route
+// In main.go, replace the http.HandleFunc with:
+r.GET("/download-brochure", func(c *gin.Context) {
+    handlers.DownloadBrochureHandler(c.Writer, c.Request)
+})
 
+
+    r.SetTrustedProxies([]string{"127.0.0.1"})
     
     r.Run(":8080")
 }
