@@ -1,47 +1,42 @@
 package handlers
 
 import (
-    "bytes"
-    "io/ioutil"
     "log"
-	"strconv"
     "net/http"
     "os"
+    "strconv"
 )
 
 func DownloadBrochureHandler(w http.ResponseWriter, r *http.Request) {
     log.Println("[DownloadBrochureHandler] Request received")
 
-    // Load brochure HTML
-    htmlContent, err := os.ReadFile("attachments/brochure.html")
+    // Path to pre-compressed brochure PDF
+    filePath := "attachments/school_brochure_compressed.pdf"
+
+    // Open the file
+    f, err := os.Open(filePath)
     if err != nil {
-        log.Printf("ERROR reading brochure.html: %v", err)
+        log.Printf("ERROR opening brochure PDF: %v", err)
         http.Error(w, "Brochure not found", http.StatusInternalServerError)
         return
     }
+    defer f.Close()
 
-    // Send HTML to Node.js PDF service
-    log.Println("[DownloadBrochureHandler] Sending HTML to Node.js service...")
-    resp, err := http.Post("https://pdf-service-python.onrender.com/generate-pdf", "text/html", bytes.NewReader(htmlContent))
+    // Get file info for size
+    fi, err := f.Stat()
     if err != nil {
-        log.Printf("ERROR calling PDF service: %v", err)
-        http.Error(w, "Failed to generate PDF", http.StatusInternalServerError)
-        return
-    }
-    defer resp.Body.Close()
-
-    pdfBytes, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        log.Printf("ERROR reading PDF response: %v", err)
-        http.Error(w, "Failed to read PDF", http.StatusInternalServerError)
+        log.Printf("ERROR getting file info: %v", err)
+        http.Error(w, "Failed to read brochure file", http.StatusInternalServerError)
         return
     }
 
-    // Forward PDF to client
+    // Set headers
     w.Header().Set("Content-Type", "application/pdf")
     w.Header().Set("Content-Disposition", `attachment; filename="Acres_of_Mercy_Prospectus.pdf"`)
-    w.Header().Set("Content-Length", strconv.Itoa(len(pdfBytes)))
-    w.Write(pdfBytes)
+    w.Header().Set("Content-Length", strconv.FormatInt(fi.Size(), 10))
+
+    // Stream file to client
+    http.ServeContent(w, r, fi.Name(), fi.ModTime(), f)
 
     log.Println("[DownloadBrochureHandler] PDF successfully sent to client")
 }
