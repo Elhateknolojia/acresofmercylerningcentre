@@ -27,7 +27,11 @@ func UploadResource(c *gin.Context) {
 
     // Upload file
     f, _ := file.Open()
-    uploadResult, err := cld.Upload.Upload(c, f, uploader.UploadParams{})
+    uploadResult, err := cld.Upload.Upload(c, f, uploader.UploadParams{
+        ResourceType: "raw",   // 👈 important for PDFs
+        PublicID:     file.Filename, // optional: keeps original name
+    })
+
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload to Cloudinary"})
         return
