@@ -45,7 +45,7 @@ func DownloadFeeStructure(w http.ResponseWriter, r *http.Request) {
     log.Println("[DownloadFeeStructure] Request received")
 
     // Path to pre-compressed fee structure PDF
-    filePath := "attachments/ACRES_OF_MERCY_LEARNING_CENTRE_FEE_STRUCTURE.pdf"
+    filePath := "attachments/ACRES OF MERCY LEARNING CENTRE FEE STRUCTURE 2026.pdf"
     
     // Open the file
     f, err := os.Open(filePath)
