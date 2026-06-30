@@ -69,6 +69,9 @@ r.GET("/api/highlights", handlers.ListHighlights)
 r.POST("/api/highlights", handlers.SaveHighlights)
 r.DELETE("/api/highlights/:id", handlers.DeleteHighlight)
 
+// Serve static files from attachments folder
+r.Static("/attachments", "./attachments")
+
 
 //download brochure route
 // In main.go, replace the http.HandleFunc with:
