@@ -11,9 +11,12 @@ import (
 	"time"
     "github.com/gin-gonic/gin"
     "github.com/google/uuid"
+    "context"
 )
 
 // UploadResource: admin uploads a file
+
+
 
 func UploadResource(c *gin.Context) {
     file, err := c.FormFile("file")
@@ -22,35 +25,35 @@ func UploadResource(c *gin.Context) {
         return
     }
 
-    // Initialize Cloudinary
     cld, _ := cloudinary.NewFromURL(os.Getenv("CLOUDINARY_URL"))
 
-    // Upload file
     f, _ := file.Open()
-    uploadResult, err := cld.Upload.Upload(c, f, uploader.UploadParams{
-        ResourceType: "raw",   // 👈 important for PDFs
-        PublicID:     file.Filename, // optional: keeps original name
-    })
+    ctx := context.Background() // ✅ correct context
 
+    uploadResult, err := cld.Upload.Upload(ctx, f, uploader.UploadParams{
+        ResourceType: "raw",   // ✅ now applied correctly
+        PublicID:     file.Filename,
+    })
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload to Cloudinary"})
         return
     }
 
     resource := models.Resource{
-        ID:       uuid.New().String(),
-        Title:    c.PostForm("title"),
-        Type:     c.PostForm("type"),
-        Audience: c.PostForm("audience"),
-        FileName: file.Filename,
-        FilePath: uploadResult.SecureURL, // ✅ Cloudinary URL
-        FileSize: file.Size,
+        ID:        uuid.New().String(),
+        Title:     c.PostForm("title"),
+        Type:      c.PostForm("type"),
+        Audience:  c.PostForm("audience"),
+        FileName:  file.Filename,
+        FilePath:  uploadResult.SecureURL, // ✅ should now be /raw/upload/...
+        FileSize:  file.Size,
         DateAdded: time.Now(),
     }
 
     db.SaveResource(resource)
     c.JSON(http.StatusOK, resource)
 }
+
 // ListResources: return all resources
 func ListResources(c *gin.Context) {
     resources := db.GetResources()
