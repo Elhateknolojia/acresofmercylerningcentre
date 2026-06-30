@@ -11,7 +11,7 @@ func DownloadBrochureHandler(w http.ResponseWriter, r *http.Request) {
     log.Println("[DownloadBrochureHandler] Request received")
 
     // Path to pre-compressed brochure PDF
-    filePath := "attachments/school_brochure_compressed.pdf"
+    filePath := "attachments/school_brochure.pdf"
 
     // Open the file
     f, err := os.Open(filePath)
