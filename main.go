@@ -72,6 +72,12 @@ r.DELETE("/api/highlights/:id", handlers.DeleteHighlight)
 // Serve static files from attachments folder
 r.Static("/attachments", "./attachments")
 
+// In main.go
+r.GET("/download-fees-structure", func(c *gin.Context) {
+    handlers.DownloadFeeStructure(c.Writer, c.Request)
+})
+
+
 
 //download brochure route
 // In main.go, replace the http.HandleFunc with:
